@@ -11,7 +11,7 @@ from flask import Flask, render_template, flash, request
 from wtforms import Form, StringField, validators
 from owlready2 import *
 from owlready2.sparql.endpoint import *
-from query_api import get_book_from_category, get_author_from_book, get_book_from_author, get_book_from_publisher
+from query_api import get_book_from_category, get_author_from_book, get_book_from_author, get_book_from_publisher, get_book_from_year, get_book_from_isbn
 from owlready2 import *
 
 app = Flask(__name__)
@@ -37,127 +37,15 @@ class ReusableForm(Form):
 
         output = {}
         query = ''
-
+        # request.form['but1']='AllBook'
+        # print(request.form)
+        # import pdb; pdb.set_trace()
         if request.method == 'POST':
-
-            if(request.form['but1']=='Business'):
+            if(request.form['but1']=='AllBook'):
                 no_query = True
                 query = """
                     SELECT ?bookname ?bookauthor ?bookpublisher
                         WHERE {
-                            ?book rdf:type ?childClass .
-                            ?childClass rdfs:subClassOf* :Business .
-                            ?book :hasTitle ?bookname .
-                            ?book :hasAuthor ?author .
-                            ?author :hasName ?bookauthor .
-                            ?book :hasPublisher ?publisher .
-                            ?publisher :publisherHasName ?bookpublisher .
-                        }
-
-            """
-
-            elif(request.form['but1']=='Computer'):
-                no_query = True
-                query = """
-                    SELECT ?bookname ?bookauthor ?bookpublisher
-                        WHERE {
-                            ?book rdf:type ?childClass .
-                            ?childClass rdfs:subClassOf* :Computer .
-                            ?book :hasTitle ?bookname .
-                            ?book :hasAuthor ?author .
-                            ?author :hasName ?bookauthor .
-                            ?book :hasPublisher ?publisher .
-                            ?publisher :publisherHasName ?bookpublisher .
-                        }
-
-            """
-
-            elif(request.form['but1']=='Economy'):
-                no_query = True
-                query = """
-                    SELECT ?bookname ?bookauthor ?bookpublisher
-                        WHERE {
-                            ?book rdf:type ?childClass .
-                            ?childClass rdfs:subClassOf* :Economy .
-                            ?book :hasTitle ?bookname .
-                            ?book :hasAuthor ?author .
-                            ?author :hasName ?bookauthor .
-                            ?book :hasPublisher ?publisher .
-                            ?publisher :publisherHasName ?bookpublisher .
-                        }
-
-            """
-
-            elif(request.form['but1']=='Literature'):
-                no_query = True
-                query = """
-                    SELECT ?bookname ?bookauthor ?bookpublisher
-                        WHERE {
-                            ?book rdf:type ?childClass .
-                            ?childClass rdfs:subClassOf* :Literature .
-                            ?book :hasTitle ?bookname .
-                            ?book :hasAuthor ?author .
-                            ?author :hasName ?bookauthor .
-                            ?book :hasPublisher ?publisher .
-                            ?publisher :publisherHasName ?bookpublisher .
-                        }
-
-            """
-
-            elif(request.form['but1']=='Math'):
-                no_query = True
-                query = """
-                    SELECT ?bookname ?bookauthor ?bookpublisher
-                        WHERE {
-                            ?book rdf:type ?childClass .
-                            ?childClass rdfs:subClassOf* :Math .
-                            ?book :hasTitle ?bookname .
-                            ?book :hasAuthor ?author .
-                            ?author :hasName ?bookauthor .
-                            ?book :hasPublisher ?publisher .
-                            ?publisher :publisherHasName ?bookpublisher .
-                        }
-
-            """
-
-            elif(request.form['but1']=='Medicine'):
-                no_query = True
-                query = """
-                    SELECT ?bookname ?bookauthor ?bookpublisher
-                        WHERE {
-                            ?book rdf:type ?childClass .
-                            ?childClass rdfs:subClassOf* :Medicine .
-                            ?book :hasTitle ?bookname .
-                            ?book :hasAuthor ?author .
-                            ?author :hasName ?bookauthor .
-                            ?book :hasPublisher ?publisher .
-                            ?publisher :publisherHasName ?bookpublisher .
-                        }
-
-            """
-            elif(request.form['but1']=='Psychology'):
-                no_query = True
-                query = """
-                    SELECT ?bookname ?bookauthor ?bookpublisher
-                        WHERE {
-                            ?book rdf:type ?childClass .
-                            ?childClass rdfs:subClassOf* :Psychology .
-                            ?book :hasTitle ?bookname .
-                            ?book :hasAuthor ?author .
-                            ?author :hasName ?bookauthor .
-                            ?book :hasPublisher ?publisher .
-                            ?publisher :publisherHasName ?bookpublisher .
-                        }
-
-            """
-
-            elif(request.form['but1']=='AllBook'):
-                no_query = True
-                query = """
-                    SELECT ?bookname ?bookauthor ?bookpublisher
-                        WHERE {
-                            ?book rdf:type ?childClass .
-                            ?childClass rdfs:subClassOf* :Book .
                             ?book :hasTitle ?bookname .
                             ?book :hasAuthor ?author .
                             ?author :hasName ?bookauthor .
@@ -175,8 +63,14 @@ class ReusableForm(Form):
                 else:
                     # print("vao ham")
                     data = []
+                    len_dta = len(str(anything))
+                    if len_dta < 11 and len_dta > 4:
+                        data.extend(get_book_from_isbn(str(anything)))
                     data.extend(get_book_from_author(str(anything)))
                     data.extend(get_book_from_publisher(str(anything)))
+                    # data.extend(get_book_from_isbn(str(anything)))
+                    if len_dta < 5:
+                        data.extend(get_book_from_year(str(anything)))
                     # #get_book_from_category and get_author_from_book work, need fix 2 left
                     if get_book_from_category(anything):
                         data.extend(get_book_from_category(anything))

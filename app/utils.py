@@ -24,25 +24,25 @@ def get_individual_from_title(input_str):
 
 
 
-data = pd.read_csv("./data.csv")
-classes = []
-for i in range(len(data)):
-    classes.append(data["hasCategory"][i])
-classes = list(set(classes))
+# data = pd.read_csv("./data.csv")
+# classes = []
+# for i in range(len(data)):
+#     classes.append(data["hasCategory"][i])
+# classes = list(set(classes))
 
-mapping_category = {}
-for classs in classes:
-    mapping_category[classs] = classs
-mapping_category['Optimization. Operations Research'] = 'Optimization'
-mapping_category ['Popular scientific literature'] = 'PopularScientificLiterature'
-mapping_category['Operating Systems'] = 'OperatingSystem'
-mapping_category['Mathematical Economics'] = 'MathematicalEconomics'
-mapping_category['Love, erotic'] = 'LoveErotic'
-mapping_category['Databases'] = 'Database'
-mapping_category['Creative Thinking'] = 'CreativeThinking'
+# mapping_category = {}
+# for classs in classes:
+#     mapping_category[classs] = classs
+# mapping_category['Optimization. Operations Research'] = 'Optimization'
+# mapping_category ['Popular scientific literature'] = 'PopularScientificLiterature'
+# mapping_category['Operating Systems'] = 'OperatingSystem'
+# mapping_category['Mathematical Economics'] = 'MathematicalEconomics'
+# mapping_category['Love, erotic'] = 'LoveErotic'
+# mapping_category['Databases'] = 'Database'
+# mapping_category['Creative Thinking'] = 'CreativeThinking'
 
-def category_mapping():
-    return mapping_category
+# def category_mapping():
+#     return mapping_category
 
 
 def remove_special_chars_keep_punct_space(text):

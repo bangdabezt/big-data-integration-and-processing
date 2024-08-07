@@ -1,11 +1,11 @@
 import pandas as pd
-from utils import get_individual_from_title, category_mapping, remove_special_chars_keep_punct_space
+from utils import get_individual_from_title, remove_special_chars_keep_punct_space
 import ast
 from owlready2 import *
 from owlready2.sparql.endpoint import *
 
 # Load one or more ontologies
-go = get_ontology("./misc/ontology_with_data.owl").load()
+go = get_ontology("./misc/ontology_with_amazon.owl").load()
 
 base_query = """PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
         PREFIX owl: <http://www.w3.org/2002/07/owl#>
@@ -103,59 +103,93 @@ def get_book_from_author(author: str):
     # print(query)
     return list(default_world.sparql(base_query + query))
 
-
-def get_book_from_pre_infomation(infomation: dict):
+def can_convert_to_int(s):
     try:
-        res = []
-        query = """
+        int(s)
+        return True
+    except ValueError:
+        return False
+    
+def get_book_from_year(year: str):
+    """This return book individual and title of book
+    """
+    new_year = 0
+    if can_convert_to_int(year):
+        new_year = int(year)
+    
+    query = """
 
-    SELECT ?booktitle ?author ?publisher ?numberpage
-            WHERE { \n
-        """
-        if infomation['title']:
-            bookTitle = remove_special_chars_keep_punct_space(infomation['title'])
-            query += '''?book :hasTitle "%s" \n
-            ''' %(str(bookTitle))
-        if infomation['category']:
-            category = infomation['category']
-            if category in category_mapping().keys():
-                query += '''?book rdf:type :%s \n
-                ''' %(str(category))
-        if infomation['author']:
-            author = infomation['author']
-            query += '''?entity_author :hasName "%s" .
-            ''' %(str(author))
-        if infomation['language']:
-            language = infomation['language']
-            query += '''?book :hasLanguage :%s \n
-            ''' %(str(language))
-        if infomation['pages']:
-            pages = infomation['pages']
+    SELECT ?booktitle ?author ?publisher
+        WHERE {
+                ?book :hasPublishYear %s .
+                OPTIONAL {?book :hasAuthor ?author_individual} .
+                OPTIONAL {?author_individual :hasName ?author} .
+                OPTIONAL {?book :hasTitle ?booktitle} .
+                OPTIONAL {?book :hasPublisher ?publisherin} .
+                OPTIONAL {?publisherin :publisherHasName ?publisher} .
+                }
+    """ % (int(new_year))
+    # print(query)
+    return list(default_world.sparql(base_query + query))
+
+def get_book_from_isbn(isbn: str):
+    """This return book individual and title of book
+    """
+    str_isbn = isbn
+    if len(isbn) < 10: str_isbn = '0'*(10-len(isbn)) + isbn
+    query = """
+
+    SELECT ?booktitle ?author ?publisher
+        WHERE {
+                ?book :hasID "%s" .
+                OPTIONAL {?book :hasAuthor ?author_individual} .
+                OPTIONAL {?author_individual :hasName ?author} .
+                OPTIONAL {?book :hasTitle ?booktitle} .
+                OPTIONAL {?book :hasPublisher ?publisherin} .
+                OPTIONAL {?publisherin :publisherHasName ?publisher} .
+                }
+        """ % (str_isbn)
+    # print(query)
+    return list(default_world.sparql(base_query + query))
+
+
+# def get_book_from_pre_infomation(infomation: dict):
+#     try:
+#         res = []
+#         query = """
+
+#     SELECT ?booktitle ?author ?publisher ?numberpage
+#             WHERE { \n
+#         """
+#         if infomation['title']:
+#             bookTitle = remove_special_chars_keep_punct_space(infomation['title'])
+#             query += '''?book :hasTitle "%s" \n
+#             ''' %(str(bookTitle))
+#         if infomation['author']:
+#             author = infomation['author']
+#             query += '''?entity_author :hasName "%s" .
+#             ''' %(str(author))
+#         if infomation['language']:
+#             language = infomation['language']
+#             query += '''?book :hasLanguage :%s \n
+#             ''' %(str(language))
+#         if infomation['pages']:
+#             pages = infomation['pages']
         
             
-        query += '?book :hasTitle ?booktitle \n'
-        query += '?book :hasAuthor ?entity_author \n'
-        query += '?book :hasPublisher ?entity_publisher \n'
-        query += '?entity_author :hasName ?author \n'
-        query += '?entity_publisher :publisherHasName ?publisher \n'
-        query += '''?book :hasNumberPage ?numberpage .                
-            }
+#         query += '?book :hasTitle ?booktitle \n'
+#         query += '?book :hasAuthor ?entity_author \n'
+#         query += '?book :hasPublisher ?entity_publisher \n'
+#         query += '?entity_author :hasName ?author \n'
+#         query += '?entity_publisher :publisherHasName ?publisher \n'
+#         query += '''?book :hasNumberPage ?numberpage .                
+#             }
                 
-            '''
-        all_individual = list(default_world.sparql(base_query + query))
-        for individual in all_individual:
-            if pages-20 <= individual[3] <= pages+20:
-                res.append(individual)
-        return res
-    except:
-        return []
-    
-#keys should be False if no data
-# info = {"category": "Fantasy", "pages": 300, "language": 'English', "author": 'Stephanie Garber', "title": False}
-# print(get_book_from_pre_infomation(info))
-
-
-
-# print(list(default_world.sparql_query(base_query + get_book_from_publisher("Routledge"))))
-# print(list(default_world.sparql_query(base_query + get_book_from_author("Aaron Erickson Erickson"))))
-#[['The Nomadic Developer Surviving and Thriving in the World of Technology Consulting', 'Aaron Erickson Erickson', 'Addison-Wesley']]
+#             '''
+#         all_individual = list(default_world.sparql(base_query + query))
+#         for individual in all_individual:
+#             if pages-20 <= individual[3] <= pages+20:
+#                 res.append(individual)
+#         return res
+#     except:
+#         return []
